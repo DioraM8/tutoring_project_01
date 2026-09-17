@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Ledger — Online Tutoring Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A45; --ink-soft:#4B5567; --paper:#FBF8F2; --paper-raised:#FFFFFF;
+    --accent:#C07F1C; --accent-soft:#EFD9AE; --line:#C9BFA8; --sage:#4E7A55;
+    --sage-soft:#DCE9DD; --danger:#8C4A3A; --gold:#B8860B;
+    color-scheme: light dark;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --ink:#EDE7D8; --ink-soft:#B9B2A0; --paper:#181510; --paper-raised:#221E17;
+      --accent:#E0A63C; --accent-soft:#4A3A1C; --line:#4A4335; --sage:#8FBF97;
+      --sage-soft:#26362A; --danger:#D98B78; --gold:#E0B23C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EDE7D8; --ink-soft:#B9B2A0; --paper:#181510; --paper-raised:#221E17;
+    --accent:#E0A63C; --accent-soft:#4A3A1C; --line:#4A4335; --sage:#8FBF97;
+    --sage-soft:#26362A; --danger:#D98B78; --gold:#E0B23C;
+  }
+  body.hc{
+    --ink:#000000; --ink-soft:#000000; --paper:#FFFFFF; --paper-raised:#FFFFFF;
+    --accent:#0000CC; --accent-soft:#FFF2A8; --line:#000000; --sage:#005C1F;
+    --sage-soft:#FFFFFF; --danger:#B00000; --gold:#7A5B00;
+  }
+  body.hc :is(.tutor-card,.card-form,.lesson-row,.slot-chip,.role-btn,input,select,nav.tabs button.active,.faq-item,.testimonial-card,.video-card){
+    border-width:2px !important;
+  }
+
+  *{box-sizing:border-box;}
+  html{font-size:100%;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Lora', serif; margin:0; color:var(--ink); font-weight:600; }
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .skip-link{ position:absolute; left:-9999px; top:0; background:var(--ink); color:var(--paper); padding:10px 16px; z-index:100; }
+  .skip-link:focus{ left:12px; top:12px; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  .wrap{ max-width:960px; margin:0 auto; padding:0 24px; }
+
+  .a11y-bar{ background:var(--ink); color:var(--paper); font-size:0.78rem; }
+  .a11y-row{ max-width:960px; margin:0 auto; padding:8px 24px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .a11y-group{ display:flex; align-items:center; gap:6px; }
+  .a11y-label{ opacity:0.75; font-family:'IBM Plex Mono', monospace; font-size:0.7rem; }
+  .a11y-bar button{ background:transparent; border:1px solid var(--paper); color:var(--paper); padding:3px 9px; font-size:0.76rem; cursor:pointer; }
+  .a11y-bar button.active, .a11y-bar button:hover{ background:var(--paper); color:var(--ink); }
+
+  header.top{ border-bottom:1px solid var(--line); padding:28px 0 22px; }
+  .top-row{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .wordmark{ font-family:'Lora', serif; font-style:italic; font-weight:700; font-size:1.9rem; letter-spacing:-0.01em; }
+  .wordmark span{ color:var(--accent); font-style:normal; }
+  .top-meta{ font-family:'IBM Plex Mono', monospace; font-size:0.75rem; color:var(--ink-soft); text-align:right; }
+  .tagline{ margin-top:6px; color:var(--ink-soft); font-size:0.98rem; max-width:520px; }
+
+  .hero{ padding:40px 0 28px; border-bottom:1px solid var(--line); }
+  .hero-grid{ display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
+  .hero-main{ flex:1 1 340px; min-width:280px; }
+  .hero h1{ font-size:2rem; line-height:1.25; max-width:600px; }
+  .hero p.lede{ margin-top:14px; max-width:560px; color:var(--ink-soft); font-size:1.02rem; }
+  .role-pick{ margin-top:26px; display:flex; gap:10px; flex-wrap:wrap; }
+  .role-btn{
+    border:1px solid var(--ink); background:transparent; color:var(--ink); padding:11px 18px;
+    font-size:0.92rem; cursor:pointer; font-weight:500; transition:background 0.15s ease, color 0.15s ease;
+  }
+  .role-btn.active{ background:var(--ink); color:var(--paper); }
+  .role-btn:hover:not(.active){ background:var(--accent-soft); }
+  .current-user{ margin-top:16px; font-size:0.85rem; color:var(--ink-soft); }
+  .current-user b{ color:var(--ink); font-weight:600; }
+  .current-user button{ background:none; border:none; color:var(--accent); text-decoration:underline; cursor:pointer; font-size:0.85rem; padding:0; margin-left:10px; }
+
+  .next-banner{ margin-top:20px; border:1px solid var(--sage); background:var(--sage-soft); padding:14px 18px; max-width:560px; font-size:0.9rem; display:none; }
+  .next-banner.show{ display:block; }
+  .next-banner b{ font-weight:600; }
+
+  /* ---------- Video card ---------- */
+  .video-card{
+    flex:0 0 260px; border:1px solid var(--line); background:var(--paper-raised); overflow:hidden;
+  }
+  .video-thumb{
+    display:block; width:100%; aspect-ratio:16/9; background:var(--ink);
+    position:relative; cursor:pointer; border:none; padding:0;
+  }
+  .video-thumb svg{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+  .video-card-body{ padding:14px 16px; }
+  .video-card-body .vlabel{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em; }
+  .video-card-body h3{ font-size:0.98rem; margin-top:4px; }
+  .video-card-body p{ font-size:0.82rem; color:var(--ink-soft); margin:6px 0 0; }
+
+  nav.tabs{ display:flex; border-bottom:1px solid var(--line); margin-top:8px; overflow-x:auto; }
+  nav.tabs button{
+    background:none; border:none; padding:16px 18px 13px; font-size:0.92rem; color:var(--ink-soft);
+    cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; font-weight:500;
+  }
+  nav.tabs button.active{ color:var(--ink); border-bottom-color:var(--accent); }
+
+  section.panel{ padding:34px 0 60px; display:none; }
+  section.panel.active{ display:block; }
+  .panel h2{ font-size:1.35rem; margin-bottom:6px; }
+  .panel .sub{ color:var(--ink-soft); font-size:0.92rem; margin-bottom:26px; max-width:560px; }
+
+  form.card-form{ background:var(--paper-raised); border:1px solid var(--line); padding:26px; max-width:520px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:0.8rem; color:var(--ink-soft); margin-bottom:5px; font-weight:500; }
+  .field input, .field select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); background:var(--paper);
+    color:var(--ink); font-family:inherit; font-size:0.95rem;
+  }
+  .field input:focus, .field select:focus, button:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .submit-btn{
+    background:var(--ink); color:var(--paper); border:none; padding:12px 22px;
+    font-size:0.95rem; cursor:pointer; font-weight:500; margin-top:6px;
+  }
+  .submit-btn:hover{ background:var(--accent); }
+  .ghost-btn{
+    background:transparent; color:var(--ink); border:1px solid var(--line); padding:9px 16px;
+    font-size:0.85rem; cursor:pointer; font-weight:500;
+  }
+  .ghost-btn:hover{ border-color:var(--ink); }
+  .toolbar-row{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .hint{ font-size:0.8rem; color:var(--ink-soft); margin-top:14px; }
+
+  .search-row{ display:flex; gap:10px; max-width:520px; margin-bottom:16px; }
+  .search-row input{ flex:1; padding:11px 13px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); font-family:inherit; font-size:0.95rem; }
+  .search-row button{ border:1px solid var(--ink); background:var(--ink); color:var(--paper); padding:0 20px; cursor:pointer; font-size:0.9rem; }
+  .subject-chips{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:26px; }
+  .subject-chip-btn{ border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft); padding:5px 12px; font-size:0.78rem; cursor:pointer; border-radius:999px; }
+  .subject-chip-btn:hover, .subject-chip-btn.active{ border-color:var(--accent); color:var(--ink); }
+
+  .tutor-card{ border:1px solid var(--line); border-left:4px solid var(--accent); background:var(--paper-raised); padding:20px 22px; margin-bottom:16px; position:relative; }
+  .tutor-card h3{ font-size:1.08rem; font-weight:600; padding-right:34px; }
+  .fav-btn{ position:absolute; top:18px; right:18px; background:none; border:none; font-size:1.15rem; cursor:pointer; color:var(--line); line-height:1; }
+  .fav-btn.on{ color:var(--gold); }
+  .rating{ font-size:0.82rem; color:var(--gold); margin-top:2px; letter-spacing:1px; }
+  .rating .count{ color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; margin-left:4px; letter-spacing:0; }
+  .subject-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .subject-pill{ font-size:0.74rem; padding:3px 10px; border-radius:999px; font-family:'IBM Plex Mono', monospace; color:#fff; }
+  .tutor-card .bio{ color:var(--ink-soft); font-size:0.9rem; margin-top:10px; }
+  .slot-list{ margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; }
+  .slot-chip{ border:1px solid var(--line); padding:7px 12px; font-size:0.82rem; display:flex; align-items:center; gap:8px; }
+  .slot-chip.open{ background:var(--sage-soft); }
+  .slot-chip.taken{ color:var(--ink-soft); text-decoration:line-through; background:transparent; }
+  .slot-chip button{ border:none; background:var(--ink); color:var(--paper); padding:4px 9px; font-size:0.76rem; cursor:pointer; }
+  .slot-chip button:hover{ background:var(--accent); }
+  .empty{ color:var(--ink-soft); font-size:0.92rem; border:1px dashed var(--line); padding:22px; max-width:520px; }
+
+  .lesson-row{ display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); max-width:680px; }
+  .lesson-row:first-child{ border-top:1px solid var(--line); }
+  .lesson-row .who{ font-weight:500; }
+  .lesson-row .when{ font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color:var(--ink-soft); }
+  .lesson-actions{ display:flex; align-items:center; gap:10px; }
+  .status-pill{ font-size:0.72rem; padding:3px 9px; border:1px solid var(--sage); color:var(--sage); font-family:'IBM Plex Mono', monospace; }
+  .cancel-link{ background:none; border:none; color:var(--danger); text-decoration:underline; font-size:0.78rem; cursor:pointer; padding:0; }
+
+  .week-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:22px; overflow-x:auto; }
+  .week-col{ border:1px solid var(--line); min-width:110px; background:var(--paper-raised); }
+  .week-col-head{ font-family:'IBM Plex Mono', monospace; font-size:0.72rem; text-align:center; padding:8px 4px; border-bottom:1px solid var(--line); color:var(--ink-soft); background:var(--accent-soft); }
+  .week-col-body{ padding:8px; min-height:60px; display:flex; flex-direction:column; gap:6px; }
+  .week-slot{ font-size:0.74rem; padding:6px 7px; border:1px solid var(--line); }
+  .week-slot.open{ background:var(--sage-soft); }
+  .week-slot.taken{ color:var(--ink-soft); }
+  .week-empty-hint{ font-size:0.72rem; color:var(--ink-soft); text-align:center; padding-top:10px; }
+
+  /* ---------- FAQ ---------- */
+  .faq-item{ border-bottom:1px solid var(--line); }
+  .faq-q{
+    width:100%; text-align:left; background:none; border:none; padding:16px 0; cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:0.96rem; color:var(--ink); font-weight:500;
+  }
+  .faq-q .plus{ font-family:'IBM Plex Mono', monospace; color:var(--accent); font-size:1.1rem; flex-shrink:0; }
+  .faq-a{ display:none; padding:0 0 16px; color:var(--ink-soft); font-size:0.9rem; max-width:640px; }
+  .faq-item.open .faq-a{ display:block; }
+  .faq-item.open .plus{ transform:rotate(45deg); display:inline-block; }
+
+  /* ---------- Testimonials ---------- */
+  .testimonials{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px; margin-top:8px; }
+  .testimonial-card{ border:1px solid var(--line); background:var(--paper-raised); padding:18px; }
+  .testimonial-card p{ font-size:0.9rem; margin:0; }
+  .testimonial-card .attrib{ margin-top:12px; font-size:0.78rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; }
+
+  footer{ border-top:1px solid var(--line); padding:26px 0 40px; color:var(--ink-soft); font-size:0.82rem; }
+
+  @media print{
+    .a11y-bar, nav.tabs, .role-pick, .current-user, .video-card, .hero p.lede, .toolbar-row button:not(.print-only), footer{ display:none !important; }
+    body{ background:#fff; color:#000; }
+  }
+
+  @media (max-width: 700px){ .hero-grid{ flex-direction:column; } .video-card{ flex:1 1 auto; width:100%; } }
+  @media (max-width: 560px){
+    .field-row{ flex-direction:column; }
+    .top-row{ flex-direction:column; }
+    .top-meta{ text-align:left; }
+    .week-grid{ grid-template-columns:repeat(7, 130px); }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link" data-i18n="skipLink">Skip to main content</a>
+
+<div class="a11y-bar" role="toolbar" aria-label="Accessibility settings">
+  <div class="a11y-row">
+    <div class="a11y-group">
+      <span class="a11y-label" data-i18n="a11yTextSize">TEXT SIZE</span>
+      <button onclick="changeFontScale(-1)" aria-label="Decrease text size">A−</button>
+      <button onclick="changeFontScale(0)" aria-label="Reset text size">A</button>
+      <button onclick="changeFontScale(1)" aria-label="Increase text size">A+</button>
+    </div>
+    <div class="a11y-group">
+      <span class="a11y-label" data-i18n="a11yContrast">CONTRAST</span>
+      <button id="hcBtn" onclick="toggleContrast()">Hi-contrast</button>
+    </div>
+    <div class="a11y-group">
+      <span class="a11y-label" data-i18n="a11yTheme">THEME</span>
+      <button id="themeBtn" onclick="cycleTheme()">Auto</button>
+    </div>
+    <div class="a11y-group">
+      <span class="a11y-label" data-i18n="a11yLang">LANGUAGE</span>
+      <button id="langEnBtn" onclick="setLang('en')">EN</button>
+      <button id="langUzBtn" onclick="setLang('uz')">UZ</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="main">
+  <header class="top">
+    <div class="top-row">
+      <div class="wordmark">Lesson<span> Ledger</span></div>
+      <div class="top-meta" data-i18n="headerMeta">Online Tutoring Management System<br>Built for Arizona · Team 404</div>
+    </div>
+    <p class="tagline" data-i18n="tagline">Every lesson, booking, and open hour, kept in one running record — for the students who need a tutor and the tutors who keep the schedule.</p>
+  </header>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <h1 data-i18n="heroTitle">Find the right tutor. Keep every lesson on the books.</h1>
+        <p class="lede" data-i18n="heroLede">Register a profile, search tutors by subject, and book open time — or, as a tutor, list your subjects and hold your own hours open for students to fill.</p>
+
+        <div class="role-pick">
+          <button class="role-btn active" data-role="student" data-i18n="roleStudent" onclick="setRole('student')">I'm a student</button>
+          <button class="role-btn" data-role="tutor" data-i18n="roleTutor" onclick="setRole('tutor')">I'm a tutor</button>
+        </div>
+        <div class="current-user" id="currentUserLine"></div>
+        <div class="next-banner" id="nextBanner"></div>
+      </div>
+
+      <div class="video-card">
+        <button class="video-thumb" onclick="window.open('https://www.youtube.com/watch?v=j8w2xSWgKFk','_blank','noopener')" aria-label="Watch the intro video on YouTube">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="28" cy="28" r="27" fill="var(--paper)" opacity="0.92"/>
+            <path d="M23 18L38 28L23 38V18Z" fill="var(--ink)"/>
+          </svg>
+        </button>
+        <div class="video-card-body">
+          <div class="vlabel" data-i18n="videoLabel">Intro video</div>
+          <h3 data-i18n="videoTitle">See how online tutoring platforms work</h3>
+          <p data-i18n="videoDesc">A short outside explainer on booking and running lessons online — opens on YouTube in a new tab.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" id="tabsNav"></nav>
+
+  <section class="panel" id="panel-register">
+    <h2 data-i18n="registerTitle">Create your profile</h2>
+    <p class="sub" id="registerSub">Tell us who you are so students can find you, and lessons can be booked to the right name.</p>
+    <form class="card-form" id="registerForm" onsubmit="handleRegister(event)">
+      <div class="field">
+        <label for="regName" data-i18n="nameLabel">Full name</label>
+        <input type="text" id="regName" required placeholder="e.g. Amina Karimova">
+      </div>
+      <div class="field">
+        <label for="regEmail" data-i18n="emailLabel">Email</label>
+        <input type="email" id="regEmail" required placeholder="you@example.com">
+      </div>
+      <div class="field" id="subjectsField">
+        <label for="regSubjects" data-i18n="subjectsLabel">Subjects (comma separated)</label>
+        <input type="text" id="regSubjects" placeholder="e.g. Algebra, Chemistry">
+      </div>
+      <div class="field" id="bioField">
+        <label for="regBio" data-i18n="bioLabel">Short bio (optional)</label>
+        <input type="text" id="regBio" placeholder="e.g. 4 years tutoring high-school math">
+      </div>
+      <button type="submit" class="submit-btn" id="registerSubmitBtn">Register as student</button>
+      <p class="hint" data-i18n="registerHint">This is a working demo — profiles are stored on this device only.</p>
+    </form>
+  </section>
+
+  <section class="panel" id="panel-search">
+    <h2 data-i18n="searchTitle">Find a tutor</h2>
+    <p class="sub" data-i18n="searchSub">Search by subject to see who teaches it and which hours are still open.</p>
+    <div class="search-row">
+      <input type="text" id="searchInput" data-i18n-ph="searchPlaceholder" placeholder="Search by subject, e.g. Algebra" oninput="renderTutors()">
+      <button onclick="renderTutors()" data-i18n="searchBtn">Search</button>
+    </div>
+    <div class="subject-chips" id="subjectChips"></div>
+    <div id="tutorResults"></div>
+  </section>
+
+  <section class="panel" id="panel-saved">
+    <h2 data-i18n="savedTitle">Saved tutors</h2>
+    <p class="sub" data-i18n="savedSub">Tutors you've starred, kept in one place for later.</p>
+    <div id="savedTutors"></div>
+  </section>
+
+  <section class="panel" id="panel-lessons">
+    <h2 data-i18n="lessonsTitle">My lessons</h2>
+    <p class="sub" data-i18n="lessonsSub">Everything you've booked with a tutor, in order.</p>
+    <div class="toolbar-row">
+      <button class="ghost-btn" onclick="exportLessonsCsv()" data-i18n="exportCsvBtn">Download as CSV</button>
+      <button class="ghost-btn" onclick="window.print()" data-i18n="printBtn">Print</button>
+    </div>
+    <div id="myLessons"></div>
+  </section>
+
+  <section class="panel" id="panel-schedule">
+    <h2 data-i18n="scheduleTitle">My schedule</h2>
+    <p class="sub" data-i18n="scheduleSub">Open a new hour for students to book, and see who has already filled your slots.</p>
+    <form class="card-form" style="margin-bottom:30px;" onsubmit="handleAddSlot(event)">
+      <div class="field-row">
+        <div class="field">
+          <label for="slotDay" data-i18n="dayLabel">Day</label>
+          <select id="slotDay" required>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="slotTime" data-i18n="timeLabel">Time</label>
+          <input type="text" id="slotTime" required placeholder="e.g. 4:00 PM">
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" data-i18n="openHourBtn">Open this hour</button>
+    </form>
+    <div class="toolbar-row">
+      <button class="ghost-btn" onclick="exportScheduleCsv()" data-i18n="exportCsvBtn">Download as CSV</button>
+      <button class="ghost-btn" onclick="window.print()" data-i18n="printBtn">Print</button>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div id="mySchedule"></div>
+  </section>
+
+  <section class="wrap" style="padding:10px 0 46px; border-top:1px solid var(--line);">
+    <h2 style="font-size:1.2rem; margin-bottom:18px;" data-i18n="testimonialsTitle">What people are saying</h2>
+    <div class="testimonials" id="testimonials"></div>
+  </section>
+
+  <section class="wrap" style="padding-bottom:50px;">
+    <h2 style="font-size:1.2rem; margin-bottom:6px;" data-i18n="faqTitle">Frequently asked questions</h2>
+    <div id="faqList"></div>
+  </section>
+
+  <footer data-i18n="footerText">
+    Lesson Ledger — a working prototype of the tutoring management system described in the project agreement (registration, tutor search, scheduling and booking). Data lives only in this browser.
+  </footer>
+</div>
+
+<script>
+const STORAGE_KEY = 'lessonLedgerData';
+const PREF_KEY = 'lessonLedgerPrefs';
+
+const SUBJECT_COLORS = ['#8B5E3C','#3C6E8B','#6E8B3C','#8B3C6E','#3C8B6E','#8B6E3C','#5E3C8B'];
+function subjectColor(name){
+  let h = 0;
+  for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) % SUBJECT_COLORS.length;
+  return SUBJECT_COLORS[Math.abs(h)];
+}
+
+const DICT = {
+  en:{
+    skipLink:"Skip to main content", a11yTextSize:"TEXT SIZE", a11yContrast:"CONTRAST", a11yTheme:"THEME", a11yLang:"LANGUAGE",
+    headerMeta:"Online Tutoring Management System<br>Built for Arizona · Team 404",
+    tagline:"Every lesson, booking, and open hour, kept in one running record — for the students who need a tutor and the tutors who keep the schedule.",
+    heroTitle:"Find the right tutor. Keep every lesson on the books.",
+    heroLede:"Register a profile, search tutors by subject, and book open time — or, as a tutor, list your subjects and hold your own hours open for students to fill.",
+    roleStudent:"I'm a student", roleTutor:"I'm a tutor",
+    videoLabel:"Intro video", videoTitle:"See how online tutoring platforms work",
+    videoDesc:"A short outside explainer on booking and running lessons online — opens on YouTube in a new tab.",
+    registerTitle:"Create your profile",
+    registerSubStudent:"Tell us who you are so tutors know who booked their time.",
+    registerSubTutor:"List the subjects you teach so students can find you when they search.",
+    nameLabel:"Full name", emailLabel:"Email", subjectsLabel:"Subjects (comma separated)", bioLabel:"Short bio (optional)",
+    submitStudent:"Register as student", submitTutor:"Register as tutor",
+    registerHint:"This is a working demo — profiles are stored on this device only.",
+    tabRegister:"Register", tabSearch:"Find a tutor", tabLessons:"My lessons", tabSchedule:"My schedule", tabBrowse:"Browse tutors", tabSaved:"Saved",
+    searchTitle:"Find a tutor", searchSub:"Search by subject to see who teaches it and which hours are still open.",
+    searchPlaceholder:"Search by subject, e.g. Algebra", searchBtn:"Search",
+    savedTitle:"Saved tutors", savedSub:"Tutors you've starred, kept in one place for later.",
+    lessonsTitle:"My lessons", lessonsSub:"Everything you've booked with a tutor, in order.",
+    scheduleTitle:"My schedule", scheduleSub:"Open a new hour for students to book, and see who has already filled your slots.",
+    dayLabel:"Day", timeLabel:"Time", openHourBtn:"Open this hour",
+    exportCsvBtn:"Download as CSV", printBtn:"Print",
+    footerText:"Lesson Ledger — a working prototype of the tutoring management system described in the project agreement (registration, tutor search, scheduling and booking). Data lives only in this browser.",
+    bookBtn:"Book", confirmed:"Confirmed", filled:"Filled", open:"Open", booked:"Booked", cancel:"Cancel",
+    noTutorsPrefix:"No tutors match", noTutorsSuffix:"yet. Try a different subject, or check back once more tutors register.",
+    noHours:"No hours listed yet.", noSubjects:"No subjects listed",
+    noLessons:"No lessons booked yet — find a tutor and book an open hour.",
+    noScheduleTutorOnly:"Register as a tutor to open hours and manage bookings.",
+    noScheduleEmpty:"You haven't opened any hours yet — add one above.",
+    noSaved:"No saved tutors yet — star one from Find a tutor.",
+    registerFirstSaved:"Register as a student to save tutors.",
+    registerFirstLessons:"Register as a student to book and see your lessons here.",
+    switchProfile:"Switch profile", signedInAs:"Signed in as",
+    nextLesson:"Your next lesson:", bookedBy:"Booked by", reviews:"reviews",
+    weekEmpty:"No hours yet",
+    testimonialsTitle:"What people are saying",
+    faqTitle:"Frequently asked questions",
+    csvNoData:"There's nothing to export yet.",
+    testimonials:[
+      {q:"Booking a lesson took less than a minute, and I could see exactly which hours were open before I chose one.", a:"Rosa D., student"},
+      {q:"I finally have one place to see every open hour and who's booked it — no more juggling messages.", a:"Elena Vasquez, tutor"},
+      {q:"The subject search got me straight to a chemistry tutor with a slot the same week.", a:"Farid T., student"}
+    ],
+    faq:[
+      {q:"Is there a cost to use Lesson Ledger?", a:"This prototype is free to try — every profile and booking lives only in your own browser, so nothing is billed or shared."},
+      {q:"Can I cancel a lesson after booking it?", a:"Yes. Open \"My lessons\" as a student, or \"My schedule\" as a tutor, and use Cancel next to the booking."},
+      {q:"Can a tutor teach more than one subject?", a:"Yes — list every subject you teach, separated by commas, when you register. Each one gets its own color tag in search."},
+      {q:"Where is my data stored?", a:"Everything — profiles, subjects, and bookings — is saved locally in this browser only, so it stays on this device."}
+    ]
+  },
+  uz:{
+    skipLink:"Asosiy qismga o'tish", a11yTextSize:"MATN O'LCHAMI", a11yContrast:"KONTRAST", a11yTheme:"MAVZU", a11yLang:"TIL",
+    headerMeta:"Onlayn repetitorlik boshqaruv tizimi<br>Arizona uchun · Jamoa 404",
+    tagline:"Har bir dars, band qilingan vaqt va bo'sh soat — bir joyda yozib boriladi: repetitor izlayotgan o'quvchilar va jadvalni yurituvchi repetitorlar uchun.",
+    heroTitle:"To'g'ri repetitorni toping. Har bir darsni jadvalda saqlang.",
+    heroLede:"Profil yarating, fan bo'yicha repetitor qidiring va bo'sh vaqtni band qiling — yoki repetitor bo'lsangiz, fanlaringizni ko'rsating va o'quvchilar uchun soatlaringizni ochiq qoldiring.",
+    roleStudent:"Men o'quvchiman", roleTutor:"Men repetitorman",
+    videoLabel:"Tanishtiruv videosi", videoTitle:"Onlayn repetitorlik tizimlari qanday ishlaydi",
+    videoDesc:"Onlayn darslarni band qilish va yuritish haqida qisqacha tashqi video — YouTube'da yangi oynada ochiladi.",
+    registerTitle:"Profilingizni yarating",
+    registerSubStudent:"O'zingiz haqingizda ma'lumot bering, shunda repetitorlar vaqtini kim band qilganini biladi.",
+    registerSubTutor:"O'qitadigan fanlaringizni ko'rsating, shunda o'quvchilar sizni qidirishda topa oladi.",
+    nameLabel:"To'liq ism", emailLabel:"Elektron pochta", subjectsLabel:"Fanlar (vergul bilan ajratilgan)", bioLabel:"Qisqacha ma'lumot (ixtiyoriy)",
+    submitStudent:"O'quvchi sifatida ro'yxatdan o'tish", submitTutor:"Repetitor sifatida ro'yxatdan o'tish",
+    registerHint:"Bu ishlaydigan namuna — profillar faqat shu qurilmada saqlanadi.",
+    tabRegister:"Ro'yxatdan o'tish", tabSearch:"Repetitor topish", tabLessons:"Darslarim", tabSchedule:"Jadvalim", tabBrowse:"Repetitorlarni ko'rish", tabSaved:"Saqlanganlar",
+    searchTitle:"Repetitor topish", searchSub:"Fan bo'yicha qidiring — kim o'qitayotganini va qaysi soatlar bo'sh ekanini ko'rasiz.",
+    searchPlaceholder:"Fan bo'yicha qidiring, masalan: Algebra", searchBtn:"Qidirish",
+    savedTitle:"Saqlangan repetitorlar", savedSub:"Yulduzcha qo'ygan repetitorlaringiz shu yerda to'planadi.",
+    lessonsTitle:"Darslarim", lessonsSub:"Repetitor bilan band qilgan barcha darslaringiz, tartib bilan.",
+    scheduleTitle:"Jadvalim", scheduleSub:"O'quvchilar uchun yangi soat oching va kim allaqachon band qilganini ko'ring.",
+    dayLabel:"Kun", timeLabel:"Vaqt", openHourBtn:"Bu soatni ochish",
+    exportCsvBtn:"CSV sifatida yuklab olish", printBtn:"Chop etish",
+    footerText:"Lesson Ledger — loyiha kelishuvida tasvirlangan repetitorlik boshqaruv tizimining ishlaydigan namunasi (ro'yxatdan o'tish, repetitor qidirish, jadvallashtirish va band qilish). Ma'lumotlar faqat shu brauzerda saqlanadi.",
+    bookBtn:"Band qilish", confirmed:"Tasdiqlangan", filled:"Band qilingan", open:"Bo'sh", booked:"Band", cancel:"Bekor qilish",
+    noTutorsPrefix:"Hech qanday repetitor mos kelmadi:", noTutorsSuffix:"Boshqa fanni sinab ko'ring yoki keyinroq qayting.",
+    noHours:"Hali soatlar ko'rsatilmagan.", noSubjects:"Fanlar ko'rsatilmagan",
+    noLessons:"Hali dars band qilinmagan — repetitor toping va bo'sh soatni band qiling.",
+    noScheduleTutorOnly:"Soat ochish va bandlovlarni boshqarish uchun repetitor sifatida ro'yxatdan o'ting.",
+    noScheduleEmpty:"Siz hali soat ochmagansiz — yuqorida qo'shing.",
+    noSaved:"Hali saqlangan repetitor yo'q — \"Repetitor topish\" bo'limidan birini yulduzcha bilan belgilang.",
+    registerFirstSaved:"Repetitorlarni saqlash uchun o'quvchi sifatida ro'yxatdan o'ting.",
+    registerFirstLessons:"Band qilish va darslarni ko'rish uchun o'quvchi sifatida ro'yxatdan o'ting.",
+    switchProfile:"Profilni almashtirish", signedInAs:"Kirgan foydalanuvchi:",
+    nextLesson:"Keyingi darsingiz:", bookedBy:"Band qilgan", reviews:"sharh",
+    weekEmpty:"Hali soat yo'q",
+    testimonialsTitle:"Foydalanuvchilar fikri",
+    faqTitle:"Ko'p so'raladigan savollar",
+    csvNoData:"Hozircha yuklab olish uchun ma'lumot yo'q.",
+    testimonials:[
+      {q:"Darsni band qilish bir daqiqadan kam vaqt oldi, va tanlashdan oldin qaysi soatlar bo'sh ekanini aniq ko'rdim.", a:"Rosa D., o'quvchi"},
+      {q:"Nihoyat barcha bo'sh soatlarni va kim band qilganini bitta joyda ko'raman — endi xabarlar orasida adashmayman.", a:"Elena Vasquez, repetitor"},
+      {q:"Fan bo'yicha qidiruv meni shu haftaning o'zida bo'sh soati bor kimyo repetitoriga olib bordi.", a:"Farid T., o'quvchi"}
+    ],
+    faq:[
+      {q:"Lesson Ledgerdan foydalanish pulli-mi?", a:"Bu namuna bepul — har bir profil va bandlov faqat sizning brauzeringizda saqlanadi, hech narsa hisoblanmaydi yoki ulashilmaydi."},
+      {q:"Band qilingan darsni keyin bekor qilsa bo'ladimi?", a:"Ha. O'quvchi bo'lsangiz \"Darslarim\", repetitor bo'lsangiz \"Jadvalim\" bo'limini oching va bandlov yonidagi \"Bekor qilish\"ni bosing."},
+      {q:"Repetitor bir nechta fan o'qitishi mumkinmi?", a:"Ha — ro'yxatdan o'tishda o'qitadigan barcha fanlaringizni vergul bilan ajratib yozing. Har biri qidiruvda o'z rangiga ega bo'ladi."},
+      {q:"Ma'lumotlarim qayerda saqlanadi?", a:"Hammasi — profillar, fanlar va bandlovlar — faqat shu brauzerda saqlanadi, shuning uchun faqat shu qurilmada qoladi."}
+    ]
+  }
+};
+
+function loadPrefs(){
+  let p;
+  try{ p = JSON.parse(localStorage.getItem(PREF_KEY)); }catch(e){ p = null; }
+  return Object.assign({ fontStep:0, hc:false, theme:'auto', lang:'en' }, p || {});
+}
+function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); }catch(e){} }
+
+let prefs = loadPrefs();
+let currentLang = prefs.lang;
+let downloadsApi = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(d => { downloadsApi = d; }).catch(() => { downloadsApi = null; });
+}
+
+function t(key){ return (DICT[currentLang] && DICT[currentLang][key]) || DICT.en[key] || key; }
+
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.innerHTML = t(key);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
+  document.documentElement.lang = currentLang;
+  document.getElementById('langEnBtn').classList.toggle('active', currentLang==='en');
+  document.getElementById('langUzBtn').classList.toggle('active', currentLang==='uz');
+  updateRegisterCopy();
+  buildTabs();
+  renderNextBanner();
+  renderTestimonials();
+  renderFaq();
+}
+
+function setLang(lang){
+  currentLang = lang;
+  prefs.lang = lang;
+  savePrefs();
+  applyTranslations();
+}
+
+function changeFontScale(dir){
+  prefs.fontStep = dir === 0 ? 0 : Math.max(-2, Math.min(4, prefs.fontStep + dir));
+  savePrefs();
+  document.documentElement.style.fontSize = (100 + prefs.fontStep * 10) + '%';
+}
+
+function toggleContrast(){
+  prefs.hc = !prefs.hc;
+  savePrefs();
+  document.body.classList.toggle('hc', prefs.hc);
+  document.getElementById('hcBtn').classList.toggle('active', prefs.hc);
+}
+
+function cycleTheme(){
+  const order = ['auto','light','dark'];
+  const idx = (order.indexOf(prefs.theme) + 1) % order.length;
+  prefs.theme = order[idx];
+  savePrefs();
+  applyTheme();
+}
+function applyTheme(){
+  if(prefs.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', prefs.theme);
+  const labels = {auto:'Auto', light:'Light', dark:'Dark'};
+  document.getElementById('themeBtn').textContent = labels[prefs.theme];
+}
+
+function loadData(){
+  let d;
+  try{ d = JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){ d = null; }
+  if(!d || !d.users){ d = seedData(); saveData(d); }
+  if(!d.favorites) d.favorites = {};
+  return d;
+}
+function saveData(d){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch(e){ console.error('Could not save', e); } }
+
+function seedData(){
+  const tutors = [
+    {id:'t1', role:'tutor', name:'Elena Vasquez', email:'elena@example.com', subjects:['Algebra','Geometry'], bio:'6 years teaching middle and high school math.', rating:4.8, reviews:32},
+    {id:'t2', role:'tutor', name:'Marcus Feld', email:'marcus@example.com', subjects:['Chemistry','Biology'], bio:'Former lab instructor, patient with beginners.', rating:4.6, reviews:19},
+    {id:'t3', role:'tutor', name:'Priya Anand', email:'priya@example.com', subjects:['English','Essay Writing'], bio:'Helps students find their own voice on the page.', rating:5.0, reviews:11}
+  ];
+  const slots = [
+    {id:'s1', tutorId:'t1', day:'Monday', time:'4:00 PM', booked:false, studentId:null},
+    {id:'s2', tutorId:'t1', day:'Wednesday', time:'5:00 PM', booked:false, studentId:null},
+    {id:'s3', tutorId:'t2', day:'Tuesday', time:'3:30 PM', booked:false, studentId:null},
+    {id:'s4', tutorId:'t2', day:'Thursday', time:'4:30 PM', booked:false, studentId:null},
+    {id:'s5', tutorId:'t3', day:'Friday', time:'2:00 PM', booked:false, studentId:null}
+  ];
+  return {users: tutors, slots: slots, currentUserId: null, favorites: {}};
+}
+
+let data = loadData();
+let currentRole = 'student';
+const WEEK_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+function getCurrentUser(){ if(!data.currentUserId) return null; return data.users.find(u => u.id === data.currentUserId) || null; }
+function starString(rating){ const full = Math.round(rating); return '★'.repeat(full) + '☆'.repeat(5-full); }
+
+function setRole(role){
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  updateRegisterCopy();
+  buildTabs();
+  renderCurrentUserLine();
+}
+
+function updateRegisterCopy(){
+  const subjField = document.getElementById('subjectsField');
+  const bioField = document.getElementById('bioField');
+  const sub = document.getElementById('registerSub');
+  const btn = document.getElementById('registerSubmitBtn');
+  if(currentRole === 'tutor'){
+    subjField.style.display = ''; bioField.style.display = '';
+    sub.textContent = t('registerSubTutor'); btn.textContent = t('submitTutor');
+  }else{
+    subjField.style.display = 'none'; bioField.style.display = 'none';
+    sub.textContent = t('registerSubStudent'); btn.textContent = t('submitStudent');
+  }
+}
+
+function buildTabs(){
+  const nav = document.getElementById('tabsNav');
+  const user = getCurrentUser();
+  let tabs = [];
+  if(!user){ tabs = [ {id:'register', label:t('tabRegister')}, {id:'search', label:t('tabSearch')} ]; }
+  else if(user.role === 'student'){ tabs = [ {id:'search', label:t('tabSearch')}, {id:'saved', label:t('tabSaved')}, {id:'lessons', label:t('tabLessons')} ]; }
+  else { tabs = [ {id:'schedule', label:t('tabSchedule')}, {id:'search', label:t('tabBrowse')} ]; }
+  const activeId = nav.querySelector('button.active')?.dataset.tab;
+  const keep = tabs.find(x => x.id === activeId) ? activeId : tabs[0].id;
+  nav.innerHTML = '';
+  tabs.forEach(tb => {
+    const b = document.createElement('button');
+    b.textContent = tb.label; b.dataset.tab = tb.id;
+    if(tb.id === keep) b.classList.add('active');
+    b.onclick = () => showTab(tb.id);
+    nav.appendChild(b);
+  });
+  showTab(keep);
+}
+
+function showTab(id){
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('section.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if(id === 'search') renderTutors();
+  if(id === 'lessons') renderMyLessons();
+  if(id === 'schedule') renderMySchedule();
+  if(id === 'saved') renderSaved();
+}
+
+function renderCurrentUserLine(){
+  const line = document.getElementById('currentUserLine');
+  const user = getCurrentUser();
+  if(user){ line.innerHTML = `${t('signedInAs')} <b>${escapeHtml(user.name)}</b> (${user.role}) <button onclick="signOut()">${t('switchProfile')}</button>`; }
+  else{ line.textContent = ''; }
+  renderNextBanner();
+}
+
+function renderNextBanner(){
+  const banner = document.getElementById('nextBanner');
+  const user = getCurrentUser();
+  if(user && user.role === 'student'){
+    const mine = data.slots.filter(s => s.booked && s.studentId === user.id);
+    if(mine.length){
+      const s = mine[0];
+      const tutor = data.users.find(u => u.id === s.tutorId);
+      banner.innerHTML = `${t('nextLesson')} <b>${tutor ? escapeHtml(tutor.name) : ''}</b> — ${s.day} · ${s.time}`;
+      banner.classList.add('show');
+      return;
+    }
+  }
+  banner.classList.remove('show');
+}
+
+function signOut(){ data.currentUserId = null; saveData(data); renderCurrentUserLine(); buildTabs(); }
+
+function handleRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const subjectsRaw = document.getElementById('regSubjects').value.trim();
+  const bio = document.getElementById('regBio').value.trim();
+  const user = {
+    id: uid('u'), role: currentRole, name, email,
+    subjects: currentRole === 'tutor' ? subjectsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [],
+    bio: bio || '', rating: currentRole === 'tutor' ? 5.0 : undefined, reviews: currentRole === 'tutor' ? 0 : undefined
+  };
+  data.users.push(user);
+  data.currentUserId = user.id;
+  saveData(data);
+  document.getElementById('registerForm').reset();
+  renderCurrentUserLine();
+  buildTabs();
+}
+
+function allSubjects(){
+  const set = new Set();
+  data.users.filter(u => u.role === 'tutor').forEach(u => u.subjects.forEach(s => set.add(s)));
+  return Array.from(set);
+}
+
+function renderSubjectChips(){
+  const box = document.getElementById('subjectChips');
+  const subs = allSubjects();
+  const current = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  box.innerHTML = subs.map(s => `<button class="subject-chip-btn ${s.toLowerCase()===current ? 'active' : ''}" onclick="pickSubject('${s.replace(/'/g,"\\'")}')">${escapeHtml(s)}</button>`).join('');
+}
+function pickSubject(s){ document.getElementById('searchInput').value = s; renderTutors(); }
+
+function toggleFavorite(tutorId){
+  const user = getCurrentUser();
+  if(!user || user.role !== 'student') return;
+  if(!data.favorites[user.id]) data.favorites[user.id] = [];
+  const list = data.favorites[user.id];
+  const idx = list.indexOf(tutorId);
+  if(idx >= 0) list.splice(idx,1); else list.push(tutorId);
+  saveData(data);
+  renderTutors();
+  renderSaved();
+}
+
+function tutorCardHtml(tutor, user){
+  const slots = data.slots.filter(s => s.tutorId === tutor.id);
+  const slotHtml = slots.length ? slots.map(s => {
+    if(s.booked){
+      const student = data.users.find(u => u.id === s.studentId);
+      return `<span class="slot-chip taken">${s.day} · ${s.time}${student ? ' — ' + escapeHtml(student.name) : ''}</span>`;
+    }
+    const canBook = user && user.role === 'student';
+    return `<span class="slot-chip open">${s.day} · ${s.time} ${canBook ? `<button onclick="bookSlot('${s.id}')">${t('bookBtn')}</button>` : ''}</span>`;
+  }).join('') : `<span style="color:var(--ink-soft); font-size:0.85rem;">${t('noHours')}</span>`;
+
+  const isFav = user && data.favorites[user.id] && data.favorites[user.id].includes(tutor.id);
+  const favBtn = (user && user.role === 'student')
+    ? `<button class="fav-btn ${isFav ? 'on':''}" aria-label="Save tutor" onclick="toggleFavorite('${tutor.id}')">${isFav ? '★' : '☆'}</button>`
+    : '';
+
+  const pills = (tutor.subjects || []).map(s => `<span class="subject-pill" style="background:${subjectColor(s)}">${escapeHtml(s)}</span>`).join('');
+  const rating = tutor.rating ? `<div class="rating">${starString(tutor.rating)} <span class="count">${tutor.rating.toFixed(1)} · ${tutor.reviews || 0} ${t('reviews')}</span></div>` : '';
+
+  return `<div class="tutor-card">
+      ${favBtn}
+      <h3>${escapeHtml(tutor.name)}</h3>
+      ${rating}
+      <div class="subject-pills">${pills || `<span style="color:var(--ink-soft); font-size:0.82rem;">${t('noSubjects')}</span>`}</div>
+      ${tutor.bio ? `<div class="bio">${escapeHtml(tutor.bio)}</div>` : ''}
+      <div class="slot-list">${slotHtml}</div>
+    </div>`;
+}
+
+function renderTutors(){
+  renderSubjectChips();
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const box = document.getElementById('tutorResults');
+  const tutors = data.users.filter(u => u.role === 'tutor');
+  const filtered = q ? tutors.filter(tu => tu.subjects.some(s => s.toLowerCase().includes(q))) : tutors;
+  if(filtered.length === 0){ box.innerHTML = `<div class="empty">${t('noTutorsPrefix')} "${escapeHtml(q)}" ${t('noTutorsSuffix')}</div>`; return; }
+  const user = getCurrentUser();
+  box.innerHTML = filtered.map(tu => tutorCardHtml(tu, user)).join('');
+}
+
+function renderSaved(){
+  const box = document.getElementById('savedTutors');
+  const user = getCurrentUser();
+  if(!user || user.role !== 'student'){ box.innerHTML = `<div class="empty">${t('registerFirstSaved')}</div>`; return; }
+  const favIds = data.favorites[user.id] || [];
+  const tutors = data.users.filter(u => favIds.includes(u.id));
+  if(tutors.length === 0){ box.innerHTML = `<div class="empty">${t('noSaved')}</div>`; return; }
+  box.innerHTML = tutors.map(tu => tutorCardHtml(tu, user)).join('');
+}
+
+function bookSlot(slotId){
+  const user = getCurrentUser();
+  if(!user || user.role !== 'student'){ return; }
+  const slot = data.slots.find(s => s.id === slotId);
+  if(!slot || slot.booked) return;
+  slot.booked = true; slot.studentId = user.id;
+  saveData(data); renderTutors(); renderNextBanner();
+}
+
+function cancelLesson(slotId){
+  const user = getCurrentUser();
+  const slot = data.slots.find(s => s.id === slotId);
+  if(!slot) return;
+  if(user && user.role === 'student' && slot.studentId === user.id){
+    slot.booked = false; slot.studentId = null;
+  } else if(user && user.role === 'tutor' && slot.tutorId === user.id){
+    slot.booked = false; slot.studentId = null;
+  } else return;
+  saveData(data);
+  renderMyLessons(); renderMySchedule(); renderNextBanner(); renderTutors();
+}
+
+function renderMyLessons(){
+  const box = document.getElementById('myLessons');
+  const user = getCurrentUser();
+  if(!user){ box.innerHTML = `<div class="empty">${t('registerFirstLessons')}</div>`; return; }
+  const mine = data.slots.filter(s => s.booked && s.studentId === user.id);
+  if(mine.length === 0){ box.innerHTML = `<div class="empty">${t('noLessons')}</div>`; return; }
+  box.innerHTML = mine.map(s => {
+    const tutor = data.users.find(u => u.id === s.tutorId);
+    return `<div class="lesson-row">
+      <div><div class="who">${tutor ? escapeHtml(tutor.name) : 'Tutor'}</div><div class="when">${s.day} · ${s.time}</div></div>
+      <div class="lesson-actions"><span class="status-pill">${t('confirmed')}</span><button class="cancel-link" onclick="cancelLesson('${s.id}')">${t('cancel')}</button></div>
+    </div>`;
+  }).join('');
+}
+
+function renderWeekGrid(mySlots){
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = WEEK_ORDER.map(day => {
+    const daySlots = mySlots.filter(s => s.day === day);
+    const body = daySlots.length ? daySlots.map(s => {
+      const student = s.booked ? data.users.find(u => u.id === s.studentId) : null;
+      return `<div class="week-slot ${s.booked ? 'taken' : 'open'}">${s.time}${s.booked ? ' — ' + (student ? escapeHtml(student.name) : t('booked')) : ''}</div>`;
+    }).join('') : `<div class="week-empty-hint">${t('weekEmpty')}</div>`;
+    return `<div class="week-col"><div class="week-col-head">${day.slice(0,3)}</div><div class="week-col-body">${body}</div></div>`;
+  }).join('');
+}
+
+function renderMySchedule(){
+  const box = document.getElementById('mySchedule');
+  const user = getCurrentUser();
+  if(!user || user.role !== 'tutor'){
+    document.getElementById('weekGrid').innerHTML = '';
+    box.innerHTML = `<div class="empty">${t('noScheduleTutorOnly')}</div>`;
+    return;
+  }
+  const mine = data.slots.filter(s => s.tutorId === user.id);
+  renderWeekGrid(mine);
+  if(mine.length === 0){ box.innerHTML = `<div class="empty">${t('noScheduleEmpty')}</div>`; return; }
+  box.innerHTML = mine.map(s => {
+    const student = s.booked ? data.users.find(u => u.id === s.studentId) : null;
+    return `<div class="lesson-row">
+      <div><div class="who">${s.day} · ${s.time}</div><div class="when">${s.booked ? (student ? t('bookedBy') + ' ' + escapeHtml(student.name) : t('booked')) : t('open')}</div></div>
+      <div class="lesson-actions">
+        <span class="status-pill" style="${s.booked ? '' : 'color:var(--ink-soft); border-color:var(--line);'}">${s.booked ? t('filled') : t('open')}</span>
+        ${s.booked ? `<button class="cancel-link" onclick="cancelLesson('${s.id}')">${t('cancel')}</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function handleAddSlot(e){
+  e.preventDefault();
+  const user = getCurrentUser();
+  if(!user || user.role !== 'tutor') return;
+  const day = document.getElementById('slotDay').value;
+  const time = document.getElementById('slotTime').value.trim();
+  if(!day || !time) return;
+  data.slots.push({id: uid('s'), tutorId: user.id, day, time, booked:false, studentId:null});
+  saveData(data);
+  document.getElementById('slotTime').value = '';
+  renderMySchedule();
+}
+
+function csvEscape(v){
+  const s = String(v == null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+async function offerCsv(filename, rows){
+  if(rows.length === 0){ alert(t('csvNoData')); return; }
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  if(downloadsApi){
+    try{ await downloadsApi.save({filename, data: csv}); return; }catch(err){ /* fall through */ }
+  }
+  try{
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(err){ console.error(err); }
+}
+
+function exportLessonsCsv(){
+  const user = getCurrentUser();
+  if(!user) return;
+  const mine = data.slots.filter(s => s.booked && s.studentId === user.id);
+  const rows = [['Tutor','Day','Time']];
+  mine.forEach(s => {
+    const tutor = data.users.find(u => u.id === s.tutorId);
+    rows.push([tutor ? tutor.name : 'Tutor', s.day, s.time]);
+  });
+  offerCsv('my-lessons.csv', rows);
+}
+
+function exportScheduleCsv(){
+  const user = getCurrentUser();
+  if(!user || user.role !== 'tutor') return;
+  const mine = data.slots.filter(s => s.tutorId === user.id);
+  const rows = [['Day','Time','Status','Student']];
+  mine.forEach(s => {
+    const student = s.booked ? data.users.find(u => u.id === s.studentId) : null;
+    rows.push([s.day, s.time, s.booked ? 'Booked' : 'Open', student ? student.name : '']);
+  });
+  offerCsv('my-schedule.csv', rows);
+}
+
+function renderTestimonials(){
+  const box = document.getElementById('testimonials');
+  const list = (DICT[currentLang] && DICT[currentLang].testimonials) || DICT.en.testimonials;
+  box.innerHTML = list.map(item => `<div class="testimonial-card"><p>"${escapeHtml(item.q)}"</p><div class="attrib">${escapeHtml(item.a)}</div></div>`).join('');
+}
+
+function toggleFaq(idx){
+  const item = document.querySelectorAll('.faq-item')[idx];
+  item.classList.toggle('open');
+}
+
+function renderFaq(){
+  const box = document.getElementById('faqList');
+  const list = (DICT[currentLang] && DICT[currentLang].faq) || DICT.en.faq;
+  box.innerHTML = list.map((item, i) => `
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(${i})">${escapeHtml(item.q)} <span class="plus">+</span></button>
+      <div class="faq-a">${escapeHtml(item.a)}</div>
+    </div>`).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.documentElement.style.fontSize = (100 + prefs.fontStep * 10) + '%';
+document.body.classList.toggle('hc', prefs.hc);
+document.getElementById('hcBtn').classList.toggle('active', prefs.hc);
+applyTheme();
+setRole('student');
+applyTranslations();
+renderCurrentUserLine();
+</script>
+
+</body>
+</html>
